@@ -3,6 +3,7 @@ file(GLOB SOURCE_FILES *.cpp)
 
 if (WIN32)
   list(APPEND SOURCE_FILES win32/emoji_win32.cpp)
+  list(APPEND PLATFORM_FILES win32/windowless_context.cpp)
   set(WIN_LIBS d2d1 dwrite Windowscodecs)
 elseif (APPLE)
   list(APPEND SOURCE_FILES macos/emoji_macos.cpp)
