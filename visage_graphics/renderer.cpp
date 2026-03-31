@@ -151,17 +151,7 @@ namespace visage {
       error_message_ = renderer_name + " is required and not supported on this computer.";
     }
 
-    VISAGE_LOG("bgfx init: nwh=" + std::to_string((uintptr_t)bgfx_init.platformData.nwh) +
-               " type=" + std::to_string((int)bgfx_init.type) +
-               " supported=" + std::to_string(supported_) +
-               " numSupported=" + std::to_string(num_supported));
-    for (int i = 0; i < num_supported; ++i)
-      VISAGE_LOG("  renderer[" + std::to_string(i) + "]=" + bgfx::getRendererName(supported_renderers[i]));
-
-    bool init_ok = bgfx::init(bgfx_init);
-    VISAGE_LOG("bgfx::init returned " + std::to_string(init_ok) +
-               " rendererType=" + std::to_string((int)bgfx::getRendererType()) +
-               " expected=" + std::to_string((int)bgfx_init.type));
+    bgfx::init(bgfx_init);
     VISAGE_ASSERT(bgfx::getRendererType() == bgfx_init.type);
     swap_chain_supported_ = bgfx::getCaps()->supported & BGFX_CAPS_SWAP_CHAIN;
   }
