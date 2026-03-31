@@ -239,7 +239,7 @@ namespace visage {
   }
 
   void* WindowIOS::initWindow() const {
-    return (__bridge void*)view_.device;
+    return (__bridge void*)view_.layer;
   }
 
   void WindowIOS::windowContentsResized(int width, int height) {
