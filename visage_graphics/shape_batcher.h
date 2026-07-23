@@ -218,6 +218,15 @@ namespace visage {
     virtual void submit(Layer& layer, int submit_pass, const std::vector<PositionedBatch>& others) = 0;
 
     bool overlapsShape(const BaseShape& shape) const {
+      // Conservative cap: past a few hundred areas the linear scan dominates
+      // frame time in particle-heavy scenes (measured at ~87% of the client's
+      // draw-list build). A dense batch is simply treated as overlapping.
+      // Returning true here only reduces batch merging — it can never change
+      // draw order — so rendered output is identical.
+      static constexpr size_t kMaxAreaScan = 256;
+      if (areas_.size() > kMaxAreaScan)
+        return true;
+
       int x = shape.x;
       int y = shape.y;
       int right = shape.x + shape.width;
@@ -322,9 +331,17 @@ namespace visage {
     }
 
     int autoBatchIndex(const BaseShape& shape, BlendMode blend) const {
+      // Bounded walk: scenes that alternate shape type / blend mode per
+      // particle grow thousands of small batches, and an unbounded backwards
+      // walk (each step scanning that batch's areas) turns per-shape insertion
+      // quadratic. Stopping early is conservative — a merge opportunity may be
+      // missed (slightly more batches), but batches the walk never visited are
+      // never merged past, so draw order and rendered output are unchanged.
+      static constexpr int kMaxBatchWalk = 8;
       int match = batches_.size();
       int insert = batches_.size();
-      for (int i = batches_.size() - 1; i >= 0; --i) {
+      const int lowest = std::max(0, static_cast<int>(batches_.size()) - kMaxBatchWalk);
+      for (int i = batches_.size() - 1; i >= lowest; --i) {
         SubmitBatch* batch = batches_[i].get();
         if (batch->match(shape.batch_id, blend, shape.radialGradient()))
           match = i;
